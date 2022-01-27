@@ -1,23 +1,36 @@
-// map object
+
+//getting zeh users coords
+async function getCoords(){
+    pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject)
+    })
+	
+    return [pos.coords.latitude, pos.coords.longitude]
+}
+
+
 const myMap = {
 	coordinates: [],
 	businesses: [],
 	map: {},
 	markers: {},
 
-	// build leaflet map
+	// building zeh map
 	buildMap() {
+		
 		this.map = L.map('map', {
 		center: this.coordinates,
-		zoom: 11,
+		zoom: 15,
 		});
-		// add openstreetmap tiles
+		
+		//The map tile
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		attribution:
 			'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 		minZoom: '15',
 		}).addTo(this.map)
-		// create and add geolocation marker
+		
+		//Users location pin
 		const marker = L.marker(this.coordinates)
 		marker
 		.addTo(this.map)
@@ -38,23 +51,14 @@ const myMap = {
 	},
 }
 
-// get coordinates via geolocation api
-async function getCoords(){
-	const pos = await new Promise((resolve, reject) => {
-		navigator.geolocation.getCurrentPosition(resolve, reject)
-	});
-	return [pos.coords.latitude, pos.coords.longitude]
-}
-
-// get foursquare businesses
-async function getFoursquare(business) {
+async function fourSquare(business) {
 	const options = {
-		method: 'GET',
-		headers: {
-		Accept: 'application/json',
-		Authorization: 'fsq3ATzZbmcGhdeFafr73wZcnJ+LlN6bK+4dh19a7ClS4u8='
+	method: 'GET',
+	headers: {
+    Accept: 'application/json',
+    Authorization: 'fsq3PkUALzrnqjhpCQP27qlJchfANAIDxtZldaAPgDpA5yk='
 		}
-	}
+	};
 	let limit = 5
 	let lat = myMap.coordinates[0]
 	let lon = myMap.coordinates[1]
@@ -64,7 +68,7 @@ async function getFoursquare(business) {
 	let businesses = parsedData.results
 	return businesses
 }
-// process foursquare array
+
 function processBusinesses(data) {
 	let businesses = data.map((element) => {
 		let location = {
@@ -77,20 +81,16 @@ function processBusinesses(data) {
 	return businesses
 }
 
-
-// event handlers
-// window load
 window.onload = async () => {
 	const coords = await getCoords()
 	myMap.coordinates = coords
 	myMap.buildMap()
 }
 
-// business submit button
 document.getElementById('submit').addEventListener('click', async (event) => {
 	event.preventDefault()
-	let business = document.getElementById('business').value
-	let data = await getFoursquare(business)
+	let business = document.getElementById('selector').value
+	let data = await fourSquare(business)
 	myMap.businesses = processBusinesses(data)
 	myMap.addMarkers()
 })
